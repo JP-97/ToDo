@@ -12,6 +12,9 @@ class DBWriteError(Exception):
 class DBReadError(Exception):
     pass
 
+class DBClearError(Exception):
+    pass
+
 class JsonError(Exception):
     pass
 

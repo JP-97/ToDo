@@ -1,45 +1,37 @@
-import json
-import itertools
-from rptodoProject import rptodo, database
-
-
-class toDo():
+class toDo(): #TODO convert this to a dataclass! (maybe?)
     """Simple class to model todo object."""
 
-    def __init__(self, name, description, priority):
-        database_size = len(rptodo.DatabaseHandler(db_path=database.fetch_database_directory()).read_todos())
+    def __init__(self, description, priority):
 
-        self.name = name
         self.description = description
-        self.priority = priority #TODO add logic to validate priority in this class!
-        self.done = False
-        self.id = id(self)
-        self.db_index = database_size # account for 0 indexing done by lists
-        self.dict = {self.name:
-                    {'description':self.description,
-                     'priority':self.priority,
-                     'done_status':self.done,
-                     'index':self.db_index,
-                     'id':self.id}}
+        self.priority = priority  #TODO understand priority checking logic provided from @Property decorator
+        # self.done = False
+        # self.id = id(self)
+        # self.db_index = database_size # account for 0 indexing done by lists
 
-    def __str__(self):
-        return json.dumps(self.dict)
+    # Enforce description and priority requirements
 
-    # def _validate_priority(priority):
-    # """Return a priority value between 1 and 3."""
-    
-    # while True:
-    #     try:
-    #         priority = int(priority)
-    #         _check_range(priority)
-    #     except (ValueError, exceptions.RangeError):
-    #         print('Please enter a priority between 1 and 3')
-    #         priority = input('enter a new priority:\t')
-    #     else:
-    #         return priority
+    @property
+    def description(self):
+        return self._description
 
-    # def _check_range(priority):
-    # """Validate that the priority value provided is between 1 and 3."""
+    @description.setter
+    def description(self, d):
+        if len(d) > 100:
+            raise ValueError("To-Do description exceeds allowable length (100 chars)!")
+        self._description = d
 
-    # if priority not in range(1,4):
-    #     raise exceptions.RangeError
+    @property
+    def priority(self):
+        return self._priority
+
+    @priority.setter
+    def priority(self, p):
+        try:
+            p_int = int(p)            
+        except ValueError:
+            raise ValueError("To-Do priority was not a valid integer!")
+        else:
+            if p_int < 1 or p_int > 5:
+                raise ValueError("To-Do priority is not in the correct range!")
+            self._priority = p
