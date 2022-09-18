@@ -4,13 +4,14 @@ import logging
 
 from rptodoProject import exceptions
 
+
 class Config:
     """This establishes a config file for the to-do database."""
 
     _APP_DIR = os.path.dirname(__file__)
     _CONFIG_DIR = os.path.join(_APP_DIR, "Configs")
     _CONFIG_PATH_DEFAULT = os.path.join(_CONFIG_DIR, "Config.ini")
-    _DATABASE_NAME = '_database.json'
+    _DATABASE_NAME = "_database.json"
     _DATABASE_ABS_PATH = os.path.join(_APP_DIR, "Database", _DATABASE_NAME)
 
     def __init__(self) -> None:
@@ -31,24 +32,23 @@ class Config:
         if self._config_file_exists():
             logging.info(f"Found Database config file at {Config._CONFIG_PATH_DEFAULT}")
         else:
-            # raise FileNotFoundError(f"Database config file could not be found at {Config._CONFIG_PATH_DEFAULT}")
             self._create_db_config_file()
 
     def _create_db_config_file(self) -> None:
         """If a database config file can't be found at the default location, create it.
-        
+
         Note: As part of this creation, the DATABASE section in the config file will also
               be created with the DatabasePath key pointing to the _DATABASE_ABS_PATH.
         """
         if not self._config_directory_exists():
             self._create_config_directory()
-        
+
         if not self._config_file_exists():
             self._create_config_file()
 
     def _create_config_directory(self) -> None:
         """Create the configuration file directory for the database.
-        
+
         Raises:
             DirError: An error occurred creating the directory.
         """
@@ -59,7 +59,7 @@ class Config:
 
     def _create_config_file(self) -> None:
         """Create a config file at the default location and insert DatabasePath information.
-        
+
         Raises:
             FileError: An error occurs creating the database config file in the Configs directory.
         """
@@ -74,7 +74,7 @@ class Config:
     def _config_directory_exists(self) -> bool:
         """Return True if <parent_dir>/Configs directory exists."""
         if os.path.isdir(Config._CONFIG_DIR):
-            logging.info(f'config directory ({Config._CONFIG_DIR}) already exists!')
+            logging.info(f"config directory ({Config._CONFIG_DIR}) already exists!")
             return True
         return False
 
