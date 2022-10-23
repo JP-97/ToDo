@@ -3,12 +3,13 @@
 import os
 import json
 import random
-from rptodoProject import toDo, exceptions, config
 import logging
+from datetime import datetime
+from rptodoProject import toDo, exceptions, config
 from typing import Dict
 
 
-class Database():
+class Database:
     def __init__(self):
         self._config = config.Config()
         self._database_abs_path = ""
@@ -17,10 +18,10 @@ class Database():
 
     def _discover_existing_database(self) -> None:
         """Get the database absolute path from self._config
-            - If no error is raised from self._config.get_database_location(), there is either
-                an existing database at the location specified or there isn't. If there is, nothing 
-                needs to be done. If there isn't an existing database, it is assumed either the database
-                has not yet been created or was deleted, in which case it needs to be initialized.
+        - If no error is raised from self._config.get_database_location(), there is either
+            an existing database at the location specified or there isn't. If there is, nothing
+            needs to be done. If there isn't an existing database, it is assumed either the database
+            has not yet been created or was deleted, in which case it needs to be initialized.
         """
         logging.info("Searching for existing database...")
         self._database_abs_path = self._config.get_database_location()
@@ -54,7 +55,7 @@ class Database():
 
         Raises:
             DBWriteError: Unable to update the database with the provided to-do.
-        """ 
+        """
         db_contents = self._get_db_contents()
         todo_id = self._get_unique_todo_id()
         db_contents[todo_id] = vars(todo)  # update existing contents with todo
@@ -62,13 +63,52 @@ class Database():
         logging.info("Successfully added to-do to database!")
         return True
 
-    def get_database_contents(self) -> Dict[str, str]:
+    def get_database_contents(self) -> Dict[str, Dict[str, str]]:
         """Present contents of database to the user.
 
         Returns:
             bool: True if contents were successfully read and displayed.
         """
         return self._get_db_contents()
+
+    def remove_to_do(self, to_do_id: str) -> bool:
+        """Remove the to-do with the corresponding ID.
+
+        Args:
+            to_do_id (str): ID of the to-do to be removed
+
+        Returns:
+            bool: True if to-do was removed successfully, otherwise False.
+        """
+        db_contents = self._get_db_contents()
+        try:
+            db_contents.pop(to_do_id)
+            self._write_to_database(db_contents)
+            return True
+        except KeyError:
+            raise RuntimeError("Could not find to-do ID in the database.")
+        except Exception:
+            return False
+
+    def complete_to_do(self, to_do_id: str) -> bool:
+        """Update the todo's status with the corresponding to_do_id to "Complete - <timestamp>".
+
+        Args:
+            to_do_id (str): ID of the todo to be completed.
+
+        Returns:
+            bool: True if todo's status was updated from "Incomplete" to "Complete".
+        """
+        db_contents = self._get_db_contents()
+        date = self._get_date()
+        try:
+            db_contents[to_do_id]["status"] = f"Completed on {date}"
+            self._write_to_database(db_contents)
+            return True
+        except KeyError:
+            raise RuntimeError(f"Could not find to-do ID ({to_do_id}) in the database.")
+        except Exception:
+            return False
 
     def _db_exists(self) -> bool:
         """Return True if database exists at _DATABASE_ABS_PATH"""
@@ -86,14 +126,14 @@ class Database():
             logging.error("Something went wrong creating the database!")
             raise
 
-    def _write_to_database(self, contents_to_write: Dict[str, str]) -> None: 
+    def _write_to_database(self, contents_to_write: Dict[str, Dict[str, str]]) -> None:
         """Write contents_to_write to database.
 
         Raises:
             DBWriteError: Unable to write to the database.
         """
         try:
-            with open(self._database_abs_path, 'w') as db:
+            with open(self._database_abs_path, "w") as db:
                 db.write(json.dumps(contents_to_write, indent=4))
         except Exception as e:
             raise exceptions.DBWriteError(f"The following occured writing <{contents_to_write}> to database --> {e}")
@@ -116,7 +156,7 @@ class Database():
         """Return a random 6 digit string to represent the to-do's id in the database."""
         return str(random.randint(1, 999999)).zfill(6)
 
-    def _get_db_contents(self) -> Dict[str, str]:
+    def _get_db_contents(self) -> Dict[str, Dict[str, str]]:
         """Return Dict containing contents in the database.
 
         Raises:
@@ -129,3 +169,7 @@ class Database():
             raise exceptions.DBReadError("Could not read database - suspect database is corrupt")
         except FileNotFoundError:
             raise exceptions.FileError(f"Could not locate database at {self._database_abs_path}")
+
+    def _get_date(self) -> str:
+        """Return a string containing the current date."""
+        return datetime.now().strftime("%d/%m/%y")

@@ -3,9 +3,8 @@ from typing import Dict
 
 
 class Renderer:
-
     @staticmethod
-    def render_database_contents(database_contents: Dict[str, str]) -> None:
+    def render_database_contents(database_contents: Dict[str, Dict[str, str]]) -> None:
         """Print formatted database contents to stdout.
 
         Args:
@@ -16,9 +15,14 @@ class Renderer:
             return
 
         sorted_db_contents = _get_sorted_db_contents(database_contents)
-        print(f"{'TO-DO ID':<20}\t{'PRIORITY':<20}\t{'DESCRIPTION':<50}")
+        print(f"{'TO-DO ID':<10}\t{'PRIORITY':<10}\t{'DESCRIPTION':<50}\t{'STATUS':<10}")
         for to_do_id, to_do_dict in sorted_db_contents.items():
-            print(f"{to_do_id:<20}\t{to_do_dict['_priority']:<20}\t{to_do_dict['_description']:<50}")
+            print(
+                (f"{to_do_id:<10}\t"
+                 f"{to_do_dict['_priority']:<10}\t"
+                 f"{to_do_dict['_description']:<50}\t"
+                 f"{to_do_dict['status']:<10}")
+            )
 
     @staticmethod
     def print_to_user(msg_to_render: str) -> None:
@@ -36,4 +40,6 @@ def _get_sorted_db_contents(database_contents: Dict[str, str]) -> Dict[str, str]
     Returns:
         Dict[str, str]: Sorted database contents based on priority.
     """
-    return dict(sorted(database_contents.items(), key=lambda data: data[1]['_priority']))  # data[1] -> represents each to-do's dict
+    return dict(
+        sorted(database_contents.items(), key=lambda data: data[1]["_priority"])
+    )  # data[1] -> represents each to-do's dict

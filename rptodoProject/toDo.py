@@ -1,13 +1,10 @@
-class toDo(): #TODO convert this to a dataclass! (maybe?)
+class toDo:
     """Simple class to model todo object."""
 
     def __init__(self, description, priority):
-
         self.description = description
-        self.priority = priority  #TODO understand priority checking logic provided from @Property decorator
-        # self.done = False
-        # self.id = id(self)
-        # self.db_index = database_size # account for 0 indexing done by lists
+        self.priority = priority
+        self.status = "Incomplete"
 
     # Enforce description and priority requirements
 
@@ -28,7 +25,7 @@ class toDo(): #TODO convert this to a dataclass! (maybe?)
     @priority.setter
     def priority(self, p):
         try:
-            p_int = int(p)            
+            p_int = int(p)
         except ValueError:
             raise ValueError("To-Do priority was not a valid integer!")
         else:

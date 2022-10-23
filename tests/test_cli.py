@@ -1,20 +1,44 @@
 import pytest
-import sys
-import os
-from rptodoProject import cli, config, database
-
-# def test_init_db(monkeypatch: pytest.MonkeyPatch, tmp_path):
-#     """
-#     - Ensure chosing <init> results in creation of db and config file in appropriate location
-#     """
-#     monkeypatch.setattr("sys.argv", ["pytest", "init"])
-#     monkeypatch.setattr("rptodoProject.config.Config.APP_DIR", tmp_path)
-#     monkeypatch.setattr("rptodoProject.database.Database.APP_DIR", tmp_path)
-#     print(sys.argv)
-#     result = cli.main()
-#     print(list(tmp_path.iterdir()))
-#     # assert 0
+from rptodoProject import cli
 
 
-def test_cli_add() -> None:
-    pass
+@pytest.fixture
+def db_controller(mocker):
+    db_controller_mock = mocker.Mock()
+    mocker.patch("rptodoProject.rptodo.DBController.__new__", return_value=db_controller_mock)
+    return db_controller_mock
+
+
+@pytest.mark.parametrize(
+    "command_line_option",
+    ["--add", "--list", "--clear"]
+)
+def test_get_parsed_args(monkeypatch, command_line_option):
+    """Validate that Namespace object is created as expected for each possible command line argument."""
+    monkeypatch.setattr("sys.argv", ["todo", command_line_option])
+    cmd_line_args = cli.get_parsed_args()
+    assert getattr(cmd_line_args, command_line_option.strip("-")) 
+
+
+def test_error_is_raised_for_invalid_argument(monkeypatch):
+    monkeypatch.setattr("sys.argv", ["todo", "--dummy_option"])
+    with pytest.raises(SystemExit):
+        cli.get_parsed_args()
+
+
+def test_add_to_do_is_called(db_controller, monkeypatch):
+    monkeypatch.setattr("sys.argv", ["todo", "--add"])
+    cli.main()
+    db_controller.add_to_do.assert_called_once()
+
+
+def test_complete_to_do_is_called(db_controller, monkeypatch):
+    monkeypatch.setattr("sys.argv", ["todo", "--complete"])
+    cli.main()
+    db_controller.complete_to_do.assert_called_once()
+
+
+def test_remove_to_do_is_called(db_controller, monkeypatch):
+    monkeypatch.setattr("sys.argv", ["todo", "--remove"])
+    cli.main()
+    db_controller.remove_to_do.assert_called_once()

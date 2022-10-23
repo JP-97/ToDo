@@ -3,27 +3,22 @@ import argparse
 from rptodoProject import rptodo, render
 import logging
 import traceback
-from typing import Generator
 
 
 def initialize_logger() -> None:
     """Initialize ToDo app's logger."""
-    logging.basicConfig(handlers=[
-                            logging.FileHandler("rptodo.log"),
-                        ],
-                        level=logging.INFO
-                        )
+    logging.basicConfig(
+        handlers=[
+            logging.FileHandler("rptodo.log"),
+        ],
+        level=logging.INFO,
+    )
 
 
 def get_parsed_args() -> argparse.Namespace:
     """Parse the command-line arguments provided to the script"""
     cmd_line_parser = initialize_parser()
     return cmd_line_parser.parse_args()
-
-
-def get_to_do_information() -> Generator:
-    for to_do_attribute in ["description", "priority (1 - 5)"]:
-        yield input(f"Please enter the to-do's {to_do_attribute}: ")
 
 
 def initialize_parser() -> argparse.ArgumentParser:
@@ -36,9 +31,11 @@ def initialize_parser() -> argparse.ArgumentParser:
     clear --> Removes all the to-dos by clearing the database
     """
     cmd_line_parser = argparse.ArgumentParser(description="Application for managing ToDo tasks")
-    cmd_line_parser.add_argument('--add', help="Clear all ToDos from the database.", action="store_true")
-    cmd_line_parser.add_argument('--list', help="List all ToDos in the database.", action="store_true")
-    cmd_line_parser.add_argument('--clear', help="Clear all ToDos from the database.", action="store_true")
+    cmd_line_parser.add_argument("--add", help="Clear all ToDos from the database.", action="store_true")
+    cmd_line_parser.add_argument("--list", help="List all ToDos in the database.", action="store_true")
+    cmd_line_parser.add_argument("--remove", help="Remove a ToDo by providing the ID.", action="store_true")
+    cmd_line_parser.add_argument("--complete", help="Complete a ToDo by providing the ID.", action="store_true")
+    cmd_line_parser.add_argument("--clear", help="Clear all ToDos from the database.", action="store_true")
     return cmd_line_parser
 
 
@@ -49,18 +46,27 @@ def main() -> None:
 
     try:
         if parsed_args.add:
-            to_do_description, to_do_priority = get_to_do_information()
-            status_msg = db_controller.add_to_do(to_do_description, to_do_priority)
-            render.Renderer.print_to_user(status_msg)
+            db_controller.add_to_do()
+            render.Renderer.print_to_user("Successfully added todo to the database!")
+
         elif parsed_args.list:
             db_contents = db_controller.get_database_contents()
             render.Renderer.render_database_contents(db_contents)
+
+        elif parsed_args.remove:
+            db_controller.remove_to_do()
+            render.Renderer.print_to_user("Successfully removed specified todo from the database!")
+
+        elif parsed_args.complete:
+            db_controller.complete_to_do()
+            render.Renderer.print_to_user("Successfully set Completed status for specified todo")
+
         elif parsed_args.clear:
-            status_msg = db_controller.clear_database()
-            render.Renderer.print_to_user(status_msg)
+            db_controller.clear_database()
+            render.Renderer.print_to_user("Successfully cleared the database!")
 
     except Exception as e:
-        # This umbrella statement will catch all errors produced by controller, view and database
+        # catch all errors produced by controller, view and database
         logging.error(traceback.format_exc())
         render.Renderer.print_to_user(f"[ ERROR ] {e}")
         sys.exit(99)
